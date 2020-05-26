@@ -47,7 +47,7 @@
          
 ###Output
 
-`2020-05-25 17:56:06 - [Producer clientId=producer-1] Cluster ID: 4Px6U1o3QMOhliYMBTkLfg
+`````2020-05-25 17:56:06 - [Producer clientId=producer-1] Cluster ID: 4Px6U1o3QMOhliYMBTkLfg
 2020-05-25 17:56:06 - #### -> Producing message -> 1 > testMon May 25 17:56:06 PDT 2020
 2020-05-25 17:56:06 - #### -> Producing message -> 2 > testMon May 25 17:56:06 PDT 2020
 2020-05-25 17:56:06 - #### -> Producing message -> 3 > testMon May 25 17:56:06 PDT 2020
@@ -166,7 +166,7 @@
 2020-05-25 17:56:26 - #### -> Completed Consumed message -> 25 > testMon May 25 17:56:06 PDT 2020
 2020-05-25 17:56:26 - #### -> Completed Consumed message -> 28 > testMon May 25 17:56:06 PDT 2020
 2020-05-25 17:56:26 - #### -> Completed Consumed message -> 30 > testMon May 25 17:56:06 PDT 2020
-2020-05-25 17:56:26 - #### -> Completed Consumed message -> 38 > testMon May 25 17:56:06 PDT 2020`
+2020-05-25 17:56:26 - #### -> Completed Consumed message -> 38 > testMon May 25 17:56:06 PDT 2020`````
                      
 ### Start Kafka
 https://docs.confluent.io/current/quickstart/ce-docker-quickstart.html
