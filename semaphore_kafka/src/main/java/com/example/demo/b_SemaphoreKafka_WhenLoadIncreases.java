@@ -1,7 +1,6 @@
 package com.example.demo;
 
 import lombok.AllArgsConstructor;
-import org.apache.kafka.clients.producer.Producer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +20,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 
 @SpringBootApplication
-public class SemaphoreKafkaApplication {
+public class b_SemaphoreKafka_WhenLoadIncreases {
 
     public static void main(String[] args) {
-        SpringApplication.run(SemaphoreKafkaApplication.class, args);
+        SpringApplication.run(b_SemaphoreKafka_WhenLoadIncreases.class, args);
     }
 
     @RestController
@@ -41,7 +40,7 @@ public class SemaphoreKafkaApplication {
         @PostMapping(value = "/publish")
         public void sendMessageToKafkaTopic(@RequestParam("message") String message) {
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 40; i++) {
                 this.producer.sendMessage(i + " > " + message + (new Date()).toString());
             }
         }
@@ -81,7 +80,6 @@ public class SemaphoreKafkaApplication {
     }
 
     private static Semaphore charger = new Semaphore(3);
-
     public class CellPhone extends Thread {
 
         private String message;
@@ -94,6 +92,8 @@ public class SemaphoreKafkaApplication {
         public void run() {
 
             try {
+                charger.availablePermits();
+
                 charger.acquire();
                 logger.info(String.format("#### -> Started Consumed message -> %s", message));
                 Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
@@ -101,7 +101,11 @@ public class SemaphoreKafkaApplication {
                 e.printStackTrace();
             } finally {
                 logger.info(String.format("#### -> Completed Consumed message -> %s", message));
-                charger.release();
+
+                // INCREASE PERMITS
+                // All the threads are busy, need help from idle Threads
+                if(charger.availablePermits()  == 0)
+                    charger.release(10);
             }
 
         }
