@@ -23,73 +23,90 @@ import java.util.concurrent.ThreadLocalRandom;
 @SpringBootApplication
 public class SemaphoreKafkaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SemaphoreKafkaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SemaphoreKafkaApplication.class, args);
+    }
 
-	@RestController
-	@RequestMapping(value = "/kafka")
-	public class KafkaController {
+    @RestController
+    @RequestMapping(value = "/kafka")
+    public class KafkaController {
 
-		private final Producer producer;
+        private final Producer producer;
 
-		@Autowired
-		KafkaController(Producer producer) {
-			this.producer = producer;
-		}
+        @Autowired
+        KafkaController(Producer producer) {
+            this.producer = producer;
+        }
 
-		@PostMapping(value = "/publish")
-		public void sendMessageToKafkaTopic(@RequestParam("message") String message) {
+        @PostMapping(value = "/publish")
+        public void sendMessageToKafkaTopic(@RequestParam("message") String message) {
 
-			for (int i = 0; i < 1000; i++) {
-				this.producer.sendMessage(i + " > "+message+ (new Date()).toString() );
-			}
-		}
-	}
+            for (int i = 0; i < 10; i++) {
+                this.producer.sendMessage(i + " > " + message + (new Date()).toString());
+            }
+        }
+    }
 
-	@AllArgsConstructor
-	public class User{
-		String name;
-		String age;
-	}
+    @AllArgsConstructor
+    public class User {
+        String name;
+        String age;
+    }
 
-	@Service
-	public class Producer {
+    @Service
+    public class Producer {
 
-		private final Logger logger = LoggerFactory.getLogger(Producer.class);
-		private static final String TOPIC = "users";
+        private final Logger logger = LoggerFactory.getLogger(Producer.class);
+        private static final String TOPIC = "users";
 
-		@Autowired
-		private KafkaTemplate<String, String> kafkaTemplate;
+        @Autowired
+        private KafkaTemplate<String, String> kafkaTemplate;
 
-		public void sendMessage(String message) {
-			logger.info(String.format("#### -> Producing message -> %s", message));
-			this.kafkaTemplate.send(TOPIC, message);
-		}
-	}
+        public void sendMessage(String message) {
+            logger.info(String.format("#### -> Producing message -> %s", message));
+            this.kafkaTemplate.send(TOPIC, message);
+        }
+    }
 
-	@Service
-	public class ConsumerSemaphore extends Thread {
+    @Service
+    public class ConsumerSemaphore {
 
-		private String name;
-		private Semaphore charger = new Semaphore(10);
-		private final Logger logger = LoggerFactory.getLogger(ConsumerSemaphore.class);
+        private String name;
+        private final Logger logger = LoggerFactory.getLogger(ConsumerSemaphore.class);
 
-		@KafkaListener(topics = "users", groupId = "group_id")
-		public void consume(String message) throws IOException, InterruptedException {
+        @KafkaListener(topics = "users", groupId = "group_id")
+        public void consume(String message) throws IOException, InterruptedException {
+            new CellPhone(message).start();
+        }
+    }
 
-			try{
-				charger.acquire();
-				logger.info(String.format("#### -> Started Consuming message -> %s", message));
-				Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}finally {
-				logger.info(String.format("#### -> Completed Consuming message -> %s", message));
-				charger.release();
-			}
-		}
-	}
+    private static Semaphore charger = new Semaphore(3);
+
+    public class CellPhone extends Thread {
+
+        private String message;
+        private final Logger logger = LoggerFactory.getLogger(ConsumerSemaphore.class);
+
+        public CellPhone(String message) {
+            this.message = message;
+        }
+
+        public void run() {
+
+            try {
+                charger.acquire();
+                logger.info(String.format("#### -> Started Consumed message -> %s", message));
+                Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                logger.info(String.format("#### -> Completed Consumed message -> %s", message));
+                charger.release();
+            }
+
+        }
+
+    }
 
 
 	/*@Service
