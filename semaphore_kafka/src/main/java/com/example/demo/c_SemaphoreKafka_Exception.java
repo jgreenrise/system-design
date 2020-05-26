@@ -19,11 +19,11 @@ import java.util.Date;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 
-//@SpringBootApplication
-public class b_SemaphoreKafka_WhenLoadIncreases {
+@SpringBootApplication
+public class c_SemaphoreKafka_Exception {
 
     public static void main(String[] args) {
-        SpringApplication.run(b_SemaphoreKafka_WhenLoadIncreases.class, args);
+        SpringApplication.run(c_SemaphoreKafka_Exception.class, args);
     }
 
     @RestController
@@ -40,7 +40,7 @@ public class b_SemaphoreKafka_WhenLoadIncreases {
         @PostMapping(value = "/publish")
         public void sendMessageToKafkaTopic(@RequestParam("message") String message) {
 
-            for (int i = 0; i < 40; i++) {
+            for (int i = 0; i < 10; i++) {
                 this.producer.sendMessage(i + " > " + message + (new Date()).toString());
             }
         }
@@ -75,11 +75,19 @@ public class b_SemaphoreKafka_WhenLoadIncreases {
 
         @KafkaListener(topics = "users", groupId = "group_id")
         public void consume(String message) throws IOException, InterruptedException {
+
+            if(message.startsWith("4")){
+                Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
+                logger.info("Exceptiion: "+message);
+                throw new IllegalArgumentException();
+            }
+
             new CellPhone(message).start();
         }
     }
 
     private static Semaphore charger = new Semaphore(3);
+
     public class CellPhone extends Thread {
 
         private String message;
@@ -97,15 +105,14 @@ public class b_SemaphoreKafka_WhenLoadIncreases {
                 charger.acquire();
                 logger.info(String.format("#### -> Started Consumed message -> %s", message));
                 Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
+            } catch (IllegalArgumentException e) {
+                logger.info("Exceptiion: "+message);
+                e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                logger.info(String.format("#### -> Completed Consumed message -> %s", message));
-
-                // INCREASE PERMITS
-                // All the threads are busy, need help from idle Threads
-                if(charger.availablePermits()  == 0)
-                    charger.release(10);
+                //logger.info(String.format("#### -> Completed Consumed message -> %s", message));
+                charger.release();
             }
 
         }
