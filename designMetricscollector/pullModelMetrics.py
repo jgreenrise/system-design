@@ -26,6 +26,4 @@ with Diagram("Pull Metrics", show=False):
         service_directory = Etcd("Service Directory")
         zookeeper = Server("ZooKeeper")
 
-    # Metrics Collector Service sending a message to the Service Directory Service
-    metricsCollector >> service_directory
     metricsCollector >> zookeeper
