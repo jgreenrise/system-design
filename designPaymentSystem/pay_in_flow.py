@@ -59,19 +59,18 @@ with Diagram("Pay-in flow", direction="LR", graph_attr=graph_attr):
             description="that records and organizes financial transactions",
         )
 
+    with SystemBoundary("External Systems"):
+        payment_service_provider = System(
+            name="Payment Service Provider",
+            description="Paypal, Stripe, etc",
+            external=True
+        )
 
-
-    payment_service_provider = System(
-        name="Payment Service Provider",
-        description="Paypal, Stripe, etc",
-        external=True
-    )
-
-    card_schemes = System(
-        name="Card Schemes",
-        description="VISA, MasterCard, etc",
-        external=True
-    )
+        card_schemes = System(
+            name="Card Schemes",
+            description="VISA, MasterCard, etc",
+            external=True
+        )
 
     customer >> Relationship("1. Process Payment Event") >> payment_service
     payment_service >> Relationship("2. Stores the payment event in the database") >> database
