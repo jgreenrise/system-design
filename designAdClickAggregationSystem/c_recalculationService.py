@@ -36,6 +36,6 @@ with Diagram("Recalculation", show=True):
     kafka_2 >> database_writer_2 >> aggregated_dB
     aggregated_dB - Edge(label="Query Data") << query_service
 
-    recalc_svc - Edge(label="Reads from RAW dB - Batch Job", color="darkGreen", style="bold") >> raw_database
-    recalc_svc - Edge(color="darkGreen", style="bold")>> recalc_agg_svc
-    recalc_agg_svc- Edge(color="darkGreen", style="bold")  >> kafka_2
+    recalc_svc - Edge(label="1. Reads from RAW dB - Batch Job", color="darkGreen", style="bold") >> raw_database
+    recalc_svc - Edge(label="2. Calls Recalc service", color="darkGreen", style="bold", minlen="2")>> recalc_agg_svc
+    recalc_agg_svc- Edge(label="3. Push data to Q", color="darkGreen", style="bold")  >> kafka_2
