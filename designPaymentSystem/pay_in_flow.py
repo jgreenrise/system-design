@@ -5,7 +5,7 @@ graph_attr = {
     "splines": "spline",
 }
 
-with Diagram("highlevel_v2", direction="LR", graph_attr=graph_attr):
+with Diagram("Pay-in flow", direction="LR", graph_attr=graph_attr):
     customer = Person(
         name="Buyer", description="When a user clicks the place order button, a payment event is generated and sent to the payment service."
     )
