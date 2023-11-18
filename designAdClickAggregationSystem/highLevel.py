@@ -6,7 +6,8 @@ from diagrams import Cluster, Diagram, Edge
 
 with Diagram("High Level", show=False):
 
-    logwatcher = Server("Logwatcher")
+    with Cluster("Service-A"):
+        logwatcher = Server("Proxy - LogWatcher")
     data_aggregation = EC2("Data Aggregation Service")
     query_service = EC2("Query Service")
 
