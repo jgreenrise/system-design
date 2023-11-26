@@ -7,6 +7,7 @@ from diagrams import Diagram, Cluster
 from diagrams.aws.compute import EC2
 from diagrams.aws.database import RDS
 from diagrams.aws.network import ELB
+from diagrams.onprem.client import Users
 
 graph_attr = {
     "fontsize": "24",
@@ -19,10 +20,10 @@ edge_attr = {
     "splines":"spline",
     "concentrate":"True"
 }
-with Diagram("High Level", direction="LR", show=True, graph_attr=graph_attr):
+with Diagram("High Level", direction="TB", show=True, graph_attr=graph_attr):
 
     with Cluster("User"):
-        user = EC2("User")
+        user = Users("User")
 
     with Cluster("Database"):
         primary_db = RDS("Primary DB")
@@ -43,5 +44,7 @@ with Diagram("High Level", direction="LR", show=True, graph_attr=graph_attr):
         business_service >> primary_db
         primary_db >> Edge(label="replicate") >> [replica_db1, replica_db2, replica_db3]
 
-    user >> lb >> [business_service, search_service]
+    user >> lb
+    lb >> Edge(label="/businessess/[:id]") >> business_service
+    lb >> Edge(label="/search/nearby") >> search_service
 
