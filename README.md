@@ -1,7 +1,10 @@
 # system-design
 git add . && git commit -am "Your commit message here" && git push
 
-   <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <img src="https://github.com/jgreenrise/system-design/blob/master/designPaymentSystem/pay-in_flow_with_hosted_psp.png?raw=true" alt="System Design Diagram">
-<code><a href="https://docs.google.com/document/d/16TE4jR5JJfcy0YzON77wr2ITFCr_fCIje_-T0GpsCDQ/edit#heading=h.b95f11wlu9ip" target="_blank">Workflow steps</a></code>
+    <h1><b>18.&nbsp;<span style="color: rgb(22, 22, 22); background-color: rgb(255, 255, 255); font-weight: 400;">How can we avoid double charge to the customer? What if a customer clicks the pay button twice?</span></b></h1>
+    <img src="https://raw.githubusercontent.com/jgreenrise/system-design/master/designPaymentSystem/pay-in_flow.png" alt="Payment System High Level Design">
+
+
+
