@@ -1,0 +1,38 @@
+@startuml
+left to right direction
+
+database "Metadata Storage" {
+}
+
+node "Brokers" {
+    frame "Data Storage" {
+    }
+    frame "State Storage" {
+    }
+    note top of "State Storage"
+        Local copy of
+        Metadata storage
+        Consumer states
+        are managed by state store
+    end note
+}
+note left of "Brokers": Hold multiple partitions\nStores messages
+
+node "Coordination Service"{
+}
+note right of "Coordination Service"
+    Service Directory
+    Leader-Follower election
+    Maintains list of brokers
+    Cluster Mgmt
+    Failure detection and recovery
+end note
+
+[Producers] --> [Brokers]
+[Brokers] <--> "Metadata Storage"
+    note top of "Metadata Storage": Topic Configuration and Properties"
+[Brokers] <--> "Coordination Service"
+
+[Brokers] --> [Consumers]
+
+@enduml

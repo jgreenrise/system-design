@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+
+package "Producer" {
+  [Buffer]
+  [Routing]
+}
+
+node "Broker-1 Topic A \nPartition 1 \n\n ** LEADER Replica **" {
+  Routing --> [Queue_1]
+  Queue_1 ..> [Routing]
+}
+
+node "Broker-2 Topic A \nPartition 1 \n\n ** FOLLOWER Replica **" {
+  Queue_1 --> [Queue_2]
+  Queue_2 ..> [Queue_1]
+}
+
+@enduml
