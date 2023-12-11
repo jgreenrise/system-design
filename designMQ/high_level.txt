@@ -1,38 +1,37 @@
 @startuml
 left to right direction
 
-database "Metadata Storage" {
+node "Brokers" {
+    node "Data Storage" {
+    }
 }
 
-node "Brokers" {
-    frame "Data Storage" {
+node "Zookeeper" {
+    node "State Storage" {
     }
-    frame "State Storage" {
+    note right of "State Storage"
+        Last consumed offset for each partition
+        Mapping Between partition and broker
+
+        **Zookeeper**
+    end note
+    node "Coordination Service"{
     }
-    note top of "State Storage"
-        Local copy of
-        Metadata storage
-        Consumer states
-        are managed by state store
+    database "Topics dB"{
+        }
+    note right of "Topics dB": Topic Configuration and Properties \n\n  **Zookeeper**"
+
+    note right of "Coordination Service"
+        Service Directory
+        Leader-Follower election
+        Maintains list of brokers
+        Cluster Mgmt
+        Failure detection and recovery
     end note
 }
-note left of "Brokers": Hold multiple partitions\nStores messages
-
-node "Coordination Service"{
-}
-note right of "Coordination Service"
-    Service Directory
-    Leader-Follower election
-    Maintains list of brokers
-    Cluster Mgmt
-    Failure detection and recovery
-end note
 
 [Producers] --> [Brokers]
-[Brokers] <--> "Metadata Storage"
-    note top of "Metadata Storage": Topic Configuration and Properties"
-[Brokers] <--> "Coordination Service"
-
+[Brokers] <--> "Zookeeper"
 [Brokers] --> [Consumers]
 
 @enduml
