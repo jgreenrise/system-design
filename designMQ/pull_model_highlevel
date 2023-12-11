@@ -1,0 +1,39 @@
+@startuml
+
+actor "Kafka Consumer" as consumer
+participant "Kafka Broker 1" as broker1
+participant "Kafka Broker 2" as broker2
+
+activate consumer
+
+== Initialization ==
+consumer -> consumer: Configure with bootstrap.servers
+consumer -> broker1: Connect to one of the Bootstrap Servers
+broker1 --> consumer: Acknowledge Connection
+
+== Metadata Discovery ==
+consumer -> broker1: Request Metadata - (Topics, Partitions, Offset)
+broker1 --> consumer: Metadata Response
+
+== Broker Selection ==
+consumer -> consumer: Select Approproate broker to connect to
+
+== Connection to Selected Broker ==
+consumer -> consumer: Connect to Selected Broker
+consumer -> broker2: Initiate Connection
+broker2 --> consumer: Connection Acknowledgment
+
+== Normal Interaction ==
+consumer -> broker2: Start Consuming
+broker2 --> consumer: Consumed Data
+
+== Alternative Broker Interaction ==
+consumer -> broker2: Start Consuming (Alternative Broker)
+broker2 --> consumer: Consumed Data (Alternative Broker)
+
+== Commit Offset ==
+consumer -> broker2: Commits offset
+broker2 --> consumer: Ack
+
+
+@enduml
