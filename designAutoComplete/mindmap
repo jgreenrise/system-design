@@ -1,0 +1,14 @@
+@startmindmap
+* Design Auto Complete
+** 1. Requirements
+*** Functional
+*** Non Functional
+*** BOE
+**** DAU
+**** QPS
+**** Storage Required daily
+** 2. High Level Design
+*** Design
+*** SQL Query
+*** Limitation
+@endmindmap

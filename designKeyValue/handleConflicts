@@ -1,0 +1,57 @@
+@startuml
+participant "Client 1" as C1
+participant "Server Sx" as Sx
+participant "Client 2" as C2
+participant "Server Sy" as Sy
+participant "Server Sz" as Sz
+participant "Conflict Resolver" as CR
+
+C1 -> Sx: Event: Write D1\nVector Clock: D1[(Sx, 1)]
+activate Sx
+Sx -> C1: Acknowledgment
+
+C2 -> Sx: Event: Read D1\nVector Clock: D1[(Sx, 1)]
+activate Sx
+Sx --> C2: D1 Data
+deactivate Sx
+
+C2 -> Sx: Event: Write D2\nVector Clock: D2([Sx, 2])
+activate Sx
+Sx -> C2: Acknowledgment
+
+C2 -> Sy: Event: Read D2\nVector Clock: D2([Sx, 2])
+activate Sy
+Sy --> C2: D2 Data
+deactivate Sy
+
+C2 -> Sy: Event: Write D3\nVector Clock: D3([Sx, 2], [Sy, 1])
+activate Sy
+Sy -> C2: Acknowledgment
+
+C2 -> Sz: Event: Read D2\nVector Clock: D2([Sx, 2])
+activate Sz
+Sz --> C2: D2 Data
+deactivate Sz
+
+C2 -> Sz: Event: Write D4\nVector Clock: D4([Sx, 2], [Sz, 1])
+activate Sz
+Sz -> C2: Acknowledgment
+
+C1 -> CR: Event: Read D3 and D4
+activate CR
+CR --> C1: Conflict Detected
+
+C1 -> CR: Event: Resolve Conflict\nUpdated Data: D5([Sx, 3], [Sy, 1], [Sz, 1])
+deactivate CR
+
+C1 -> Sx: Event: Write D5\nVector Clock: D5([Sx, 3], [Sy, 1], [Sz, 1])
+activate Sx
+Sx -> C1: Acknowledgment
+deactivate Sx
+
+note over Sx
+  Conflict Detection:
+  The actual details of conflict resolution may vary depending on the specific application and use case.
+end note
+
+@enduml

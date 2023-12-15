@@ -17,9 +17,14 @@ node "Zookeeper" {
     end note
     node "Coordination Service"{
     }
-    database "Topics dB"{
+    database "Metadata dB"{
         }
-    note right of "Topics dB": Topic Configuration and Properties \n\n  **Zookeeper**"
+    note right of "Metadata dB"{
+        Topic Configuration and Properties
+        REPLICA distribution plan
+        Number of partitions, Retention period
+        **Zookeeper**
+    }
 
     note right of "Coordination Service"
         Service Directory
