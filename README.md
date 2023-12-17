@@ -1,10 +1,7 @@
 # system-design
 git add . && git commit -am "Your commit message here" && git push
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <h1><b>18.&nbsp;<span style="color: rgb(22, 22, 22); background-color: rgb(255, 255, 255); font-weight: 400;"></span></b></h1>
-    <img src="https://github.com/jgreenrise/system-design/blob/master/designMQ/high_level.png?raw=true" alt="">
+    <img src="https://github.com/jgreenrise/system-design/blob/master/designTwitter/highLevel.png?raw=true?" alt="">
 
 
 

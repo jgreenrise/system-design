@@ -28,6 +28,7 @@ frame Analytics{
 frame Live{
     node "LB" as lb4
     node "WebSocket Service" as wsvc
+    node "Last Seen Service" as lsvc
 }
 
 frame Kafka{
@@ -53,5 +54,7 @@ asvc <-- queue
 user3 <--> lb4
 lb4 <--> wsvc
 wsvc <-- queue
+wsvc --> lsvc
+lsvc --> rediscCache1
 
 @enduml
