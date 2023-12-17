@@ -1,16 +1,26 @@
 @startuml
-'bottom to top'
 
 actor "End User" as user1
 actor "End User" as user2
 actor "End User" as user3
+node "Redis Cache" as rediscCache1
 
 frame OnboardingFlow{
     node "LB" as ilb
     node "User Service" as usvc
-    node "Redis Cache" as rediscCache1
     node "MySQL user dB" as db1
 }
+
+note left of rediscCache1
+  **User Service**
+  save user record
+
+  **User Follower Service**
+  save user follower relationship
+
+  **LastSeenService**
+  LastSeenRecord
+end note
 
 frame UserFollowerFlow{
     node "LB" as lb2
