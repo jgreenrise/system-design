@@ -1,0 +1,106 @@
+@startuml
+left to right direction
+
+actor "Post tweet" as user1
+actor "Notify Live Users" as user2
+actor "API Clients" as user3
+actor "Get Cached Static Data" as user4
+
+frame ExternalSystem{
+    node "CDN" as cdn
+}
+
+frame InternalSystem{
+    node "LB" as lb1
+    node "Tweet Injection Service" as tweetService
+    frame "Kafka" as kafka
+    database "Cassandra Cluster \n or Hbase \n\nPersistent Storage" as cassandra
+
+     frame AssetStore{
+            node "Asset Service" as assetService
+            database objectStorage as assetdB
+            assetService --> assetdB
+     }
+
+     frame URL_Shortner{
+            node "URL shortner Service" as urlShortnerService
+            tweetService --> urlShortnerService
+     }
+
+    frame Live{
+        node "WebSocket Cluster" as wsvc
+        database "Redis - Pub Sub Channels" as rediscCacheConnections
+        wsvc <--> rediscCacheConnections
+        wsvc --> user2
+    }
+
+    frame LastSeen{
+        node "Last Seen Service" as lsvc
+        database "Redis - LastSeen" as rediscCacheLastSeen
+        lsvc --> rediscCacheLastSeen
+        wsvc --> lsvc
+    }
+
+    frame UserFollower{
+        node "Graph Service" as gsvc
+        database "MySQL / Graph dB" as userFollowerdB
+        database "Redis Cache" as rediscCacheGraph
+        gsvc --> userFollowerdB
+        gsvc --> rediscCacheGraph
+    }
+
+    frame User{
+        node "User Service" as usvc
+        database "MySQL user dB" as db1
+        database "Redis Cache" as rediscCacheUser
+        usvc --> rediscCacheUser
+        usvc --> db1
+    }
+
+    frame TweetProcessor{
+        node "Tweet Processor" as tweetProcessorService
+        node "Timeline Service" as timelineService
+        database "Redis Cache \n(ACTIVE USERS ONLY)\n\nuser1: t1,t2,t2 \nuser2: t3,t4" as rediscCacheTimeline
+        timelineService --> wsvc
+        timelineService --> lsvc
+        tweetProcessorService --> timelineService
+        timelineService --> rediscCacheTimeline
+        kafka --> tweetProcessorService
+        timelineService --> gsvc
+    }
+
+    frame TweetAPI{
+        node "Tweet Service \n\nGet User Tweet, \nCRUD ops on TWEET" as tweetService2
+        tweetService2 <--> timelineService
+        tweetService2 --> cassandra
+        user3 --> tweetService2 : get,post,delete (Except Post Tweet)
+    }
+
+    frame Analytics{
+        node "Analytics Service" as asvc
+        kafka --> asvc
+    }
+
+    frame Search{
+        node "Search Service" as searchService
+        database "Elastic Search" as db5
+        database "Redis Cache" as rediscCacheSearch
+        kafka --> searchService
+        searchService --> db5
+        searchService --> rediscCacheSearch
+        tweetService2 --> searchService
+    }
+
+}
+
+user1 --> lb1
+user4 --> cdn
+lb1 --> tweetService : postTweet
+tweetService --> cassandra
+tweetService --> assetService
+tweetService --> kafka
+
+gsvc --> usvc
+assetService --> cdn
+
+@enduml
