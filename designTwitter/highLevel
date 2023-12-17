@@ -1,0 +1,57 @@
+@startuml
+'bottom to top'
+
+actor "End User" as user1
+actor "End User" as user2
+actor "End User" as user3
+
+frame OnboardingFlow{
+    node "LB" as ilb
+    node "User Service" as usvc
+    node "Redis Cache" as rediscCache1
+    node "MySQL user dB" as db1
+}
+
+frame UserFollowerFlow{
+    node "LB" as lb2
+    node "Graph Service" as gsvc
+    database db2 {
+        folder "MYSQL / Graph dB"
+    }
+}
+
+frame Analytics{
+    node "LB" as lb3
+    node "Analytics Service" as asvc
+}
+
+frame Live{
+    node "LB" as lb4
+    node "WebSocket Service" as wsvc
+}
+
+frame Kafka{
+    node "Queues" as queue
+}
+
+user1 --> ilb
+ilb --> usvc
+usvc --> rediscCache1
+usvc --> db1
+usvc --> queue
+
+user2 --> lb2
+lb2 --> gsvc
+gsvc --> db2
+gsvc --> rediscCache1
+gsvc <-- queue
+
+user3 --> lb3
+lb3 --> asvc
+asvc <-- queue
+
+user3 <--> lb4
+lb4 <--> wsvc
+wsvc <-- queue
+
+@enduml
