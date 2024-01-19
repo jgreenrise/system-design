@@ -5,6 +5,7 @@ actor "Post tweet" as user1
 actor "Notify Live Users" as user2
 actor "API Clients" as user3
 actor "Get Cached Static Data" as user4
+actor "Follow/Unfollow user" as user5
 
 frame ExternalSystem{
     node "CDN" as cdn
@@ -13,7 +14,7 @@ frame ExternalSystem{
 frame InternalSystem{
     node "LB" as lb1
     node "Tweet Injection Service" as tweetService
-    frame "Kafka" as kafka
+    frame "Kafka \n\n UserId:TweetId" as kafka
     database "Cassandra Cluster \n or Hbase \n\nPersistent Storage" as cassandra
 
      frame AssetStore{
@@ -47,6 +48,7 @@ frame InternalSystem{
         database "Redis Cache" as rediscCacheGraph
         gsvc --> userFollowerdB
         gsvc --> rediscCacheGraph
+        user5 --> gsvc
     }
 
     frame User{
@@ -60,7 +62,7 @@ frame InternalSystem{
     frame TweetProcessor{
         node "Tweet Processor" as tweetProcessorService
         node "Timeline Service" as timelineService
-        database "Redis Cache \n(ACTIVE USERS ONLY)\n\nuser1: t1,t2,t2 \nuser2: t3,t4" as rediscCacheTimeline
+        database "Redis Cache \n(ACTIVE USERS ONLY)\n\nuserId: Double linkedlist SortBy Timestamp\nuser1: t1,t2,t2 \nuser2: t3,t4" as rediscCacheTimeline
         timelineService --> wsvc
         timelineService --> lsvc
         tweetProcessorService --> timelineService

@@ -1,0 +1,47 @@
+@startuml
+
+!define RECTANGLE class
+!define DIAMOND activity
+
+actor User
+participant APIClient
+participant APIGateway
+participant GetQueuePositionExpiryTimeLambda
+participant DynamoDB
+
+
+User -> APIClient: Query remaining time \n before token expiry (EventID, RequestID)
+activate APIClient
+note right
+  TOKEN expiration time
+  ====
+  * <b>API ""queue_pos_expiry()"" </b>
+end note
+
+APIClient -> APIGateway: queue_pos_expiry \n(EventID, RequestID)
+activate APIGateway
+
+APIGateway -> GetQueuePositionExpiryTimeLambda: getQueuePositionExpiryTime(EventID, RequestID)
+activate GetQueuePositionExpiryTimeLambda
+GetQueuePositionExpiryTimeLambda -> DynamoDB: getQueuePositionExpiryTime(EventID, RequestID)
+note right
+  JWT Token
+    {EventID,
+    RequestID,
+    status (CREATED, TRANSACTION_COMPLETE, TRANSACTION_FAILED, TOKEN_EXPIRED),
+    createdAt,
+     expiresAt}
+  ====
+  * <b> ""JWT"" </b>
+end note
+
+GetQueuePositionExpiryTimeLambda --> APIGateway: (Remaining Time)
+deactivate GetQueuePositionExpiryTimeLambda
+
+APIGateway --> APIClient: (Remaining Time)
+APIClient --> User: (Remaining Time)
+deactivate APIGateway
+
+deactivate APIClient
+
+@enduml

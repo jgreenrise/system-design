@@ -1,0 +1,29 @@
+
+
+Design Nearby friends
+
+1. DAU: 500 M
+2. User searches for nearby-friends on avg: 5 times per day
+3. Number of friends returned to user: 20 friends
+4. Search/GET  >> GET NEARBY FRIENDS - Total calls - 500 M  * 5 = 2500 M calls per day >> 2500 search/GET calls per sec
+5. User is online for max 30 mins.
+6. Each user's update is send to backend server every 5 mins. Total write calls made: 30/5 : 6 write calls per user
+7. POST/PUT call >> Post user's current location >> 500 M * 6 write calls >> 3000 M write calls per day >> 3000 write/calls per sec
+8. Each time user updates their location: loc, lat, userId 50 bytes
+9. Ingress - 50 bytes * 3000 location updates per sec - 150000 - 150 Kb per sec
+10. Egress - UserId, Distance ~ 100 bytes >> 100 bytes * 2500 >> 250000 - 250 Kb per sec
+
+READ Heavy and Write Heavy
+
+************
+
+1. Friends should appear, if they are within 5 mile radius.
+2. Location refresh interval: 30 secs.
+3. DAU: 100 M
+4. Number of concurrent users: 10% of DAU: 10 M
+5. On average, user has 500 friends. Assume all of them use nearBy feature.
+6. App displays: 20 nearby users per page and many load nearby features on request
+
+QPS
+Every 30 seconds, users provide their updated location.
+QPS: 10 million concurrent users / 30 seconds = 350,000

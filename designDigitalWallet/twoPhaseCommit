@@ -1,0 +1,28 @@
+@startuml
+skinparam handwritten true
+
+top to bottom direction
+
+database DataStore {
+}
+
+rectangle Coordinator {
+  -> Start
+  --> Request to Commit
+  --> Can you commit?
+}
+
+rectangle Participant1 {
+  --> Yes
+}
+
+rectangle Participant2 {
+  --> No  **(Failure)**
+}
+
+Coordinator --> Participant1: Can you commit?
+Coordinator --> Participant2: Can you commit?
+
+Coordinator --> Abort Decision
+
+@enduml

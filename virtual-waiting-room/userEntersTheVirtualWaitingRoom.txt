@@ -1,0 +1,93 @@
+@startuml
+scale 2
+
+!define RECTANGLE class
+!define DIAMOND activity
+
+actor User
+participant APIClient
+participant APIGateway
+participant SQSQueue
+participant AssignQueueNumLambda
+participant ElastiCache
+participant CloudWatch
+participant DynamoDB
+
+User -> APIClient: 1. enterWaitingRoom(EventID)
+activate APIClient
+note right
+  Increments queue counter
+  in ElasticCache for Redis
+  &
+  Stores each request
+  in ElastiCache for Redis
+  with its associated queue position
+  ====
+  * <b>API ""AssignQueueNum()""</b>
+end note
+APIClient -> APIGateway: 2. API: assign_queue_num(EventID)
+activate APIGateway
+
+APIGateway -> APIGateway : (Creates a unique RequestID)
+APIGateway -> DynamoDB: Save Record: User, Timestamp, EventID, RequestId)
+APIGateway -> SQSQueue: deliverRequestToQueue()
+activate SQSQueue
+APIGateway -> APIClient: (Return RequestId)
+deactivate APIGateway
+
+APIClient -> User: (Return RequestId)
+deactivate APIClient
+
+SQSQueue -> AssignQueueNumLambda: 4. processBatch() \nupto 10 requests
+
+activate AssignQueueNumLambda
+AssignQueueNumLambda -> AssignQueueNumLambda: 5. validateMessage()
+AssignQueueNumLambda -> ElastiCache: 6. incrementQueueCounter In Cache()
+note right
+  <b>EventId, Counter</b>
+  {e1, 10}, {e2, 20} ..
+
+  <b>EventId, Position, RequestId</b>
+  {e1, 5, r1} , {e1, 6, r3},
+  {e1, 8, r4}, {e2, 1, r6} ...
+end note
+activate ElastiCache
+ElastiCache --> AssignQueueNumLambda: 5a. Success
+AssignQueueNumLambda --> SQSQueue: 5.a.1. deleteMessage()
+deactivate SQSQueue
+AssignQueueNumLambda --> DynamoDB: 5.a.2. update record() - add queue position
+ElastiCache --> AssignQueueNumLambda: 5b. Failure
+deactivate ElastiCache
+
+AssignQueueNumLambda -> CloudWatch: 5.b.1. After 2nd failure\n sendToDeadLetterQueue() \n connected to CW alarm
+deactivate AssignQueueNumLambda
+
+deactivate SQSQueue
+
+User -> APIClient: 1. poll API:queue_num\n(EventID, RequestID) \n\n afterGettingRequestId
+activate APIClient
+note right
+  Returns Client numeric position
+  in the queue
+  from ElastiCaache for Redis
+  ====
+  * <b>API ""GetQueueNum()"" </b>
+end note
+
+APIClient -> APIGateway: 2. poll API:queue_num\n(EventID, RequestID)
+activate APIGateway
+
+APIGateway -> ElastiCache: 3. getQueuePosition(EventID, RequestID)
+activate DynamoDB
+
+ElastiCache --> APIGateway: (HTTP 200 QueuePosition, timeOfRequest, and AccessToken)
+ElastiCache --> APIGateway: (HTTP 102: Processing - Request hasn't processed yet)
+deactivate DynamoDB
+
+APIGateway --> APIClient: (QueuePosition)
+deactivate APIGateway
+APIClient --> User: (QueuePosition)
+
+deactivate APIClient
+
+@enduml

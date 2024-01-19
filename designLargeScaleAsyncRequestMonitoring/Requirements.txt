@@ -1,0 +1,16 @@
+I have a service that accepts millions of customer requests and processes them asynchronously.
+All requests are added to a ddb table for processing and removed from table on completion.
+
+The system can accumulate a few billions of requests.
+
+On a periodic basis i need to monitor the total number of requests in the table,
+how many of them are older than 2 hours and what is the age of the oldest request.
+
+Functional
+- Kafka / SQS + SNS - Queueing system
+
+Advantage
+- Backpressure
+- Scale producers or consumers
+- Scale by adding partitions
+-

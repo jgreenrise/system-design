@@ -1,0 +1,47 @@
+@startuml
+
+!define RECTANGLE class
+!define DIAMOND activity
+
+actor User
+participant APIClient
+participant APIGateway
+participant BuyTicketLambda
+participant DynamoDB
+
+User -> APIClient: 1. Buy Ticket - \n\nPoll buyTicket\n(JWT)
+activate APIClient
+note right
+  Buy Ticket
+  ====
+  * <b>API ""buy_ticket(JWT)"" </b>
+end note
+
+APIClient -> APIGateway: 2. buy_ticket\n(JWT)
+activate APIGateway
+
+APIGateway -> APIGateway : 3. Validate JWT
+APIGateway -> BuyTicketLambda : BuyTicket
+BuyTicketLambda -> APIGateway : Tx Response
+APIGateway -> DynamoDB : Update JWT status, for requestId, EventId
+
+note right
+  JWT Token
+
+    {EventID,
+    RequestID,
+    status : TRANSACTION_COMPLETE
+    createdAt,
+    expiresAt}
+
+  ====
+  * <b> ""JWT"" </b>
+end note
+
+APIGateway -> APIClient : HTTP 200 or Err code
+APIClient -> User : HTTP 200 or Err code
+
+deactivate APIGateway
+
+
+@enduml

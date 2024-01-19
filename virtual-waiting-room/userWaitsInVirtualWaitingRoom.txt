@@ -1,0 +1,110 @@
+@startuml
+
+!define RECTANGLE class
+!define DIAMOND activity
+
+actor User
+participant APIClient
+participant APIGateway
+participant GetServingNumLambda
+participant GenerateTokenLambda
+participant DynamoDB
+participant ElastiCache
+participant EventBridge
+participant GetQueuePositionExpiryTimeLambda
+
+User -> APIClient: 1. Can i buy ticket? - \n\nPoll ServingNumAPI\n(EventID)
+activate APIClient
+note right
+  Returns
+  the number currently
+  being served by
+  the waiting room
+  ====
+  * <b>API ""serving_num()"" </b>
+end note
+
+APIClient -> APIGateway: 2. poll ServingNumAPI\n(EventID)
+activate APIGateway
+
+APIGateway -> GetServingNumLambda: 3. getServingPosition\n(EventID)
+GetServingNumLambda -> ElastiCache: Fetch current serving location\n(EventID)
+activate GetServingNumLambda
+ElastiCache -> GetServingNumLambda: Response (event_Id: currentServingPosition)
+note right
+  <b>EventId, CurrentCounter</b>
+  {e1, 10}, {e2, 20}
+end note
+
+GetServingNumLambda --> APIGateway: (Serving Position)
+deactivate GetServingNumLambda
+
+APIGateway --> APIClient: (Serving Position)
+
+deactivate APIGateway
+
+APIClient -> APIClient: Check Serving Position \n against Queue Position
+
+APIClient --> APIClient: 4.1 If Serving Position < Queue Position, \n Return serving position to client
+APIClient --> User: 4.1.2 (Serving Position)
+
+
+APIClient --> APIClient: 4.2 If Serving Position >= Queue Position, \n request JWT
+APIClient -> APIGateway: 5. To finalize transacation \ngenerate_token(EventID, RequestID)
+activate APIGateway
+note right
+  Creates a JWT Token
+  ====
+  * <b>API ""generateToken()"" </b>
+end note
+
+APIGateway -> GenerateTokenLambda: 6. generateToken(EventID, RequestID)
+note right
+  <b>EventId, numberOfJWTTokensCreated</b>
+  {e1, 500}, {e2, 701}
+end note
+activate GenerateTokenLambda
+
+GenerateTokenLambda -> GenerateTokenLambda: 7.0 Validates Request
+GenerateTokenLambda -> DynamoDB: 7. Check if token is already generated? \n queryToken(EventID, RequestID)
+DynamoDB --> GenerateTokenLambda: (Return Token - if already exists) \nor createNewToken(requestId, EventId)
+note right
+  JWT Token
+
+    {EventID,
+    RequestID,
+    status (CREATED, TRANSACTION_COMPLETE, TRANSACTION_FAILED, TOKEN_EXPIRED),
+    createdAt,
+    expiresAt}
+
+  ====
+  * <b> ""JWT"" </b>
+end note
+GenerateTokenLambda -> EventBridge: 7.1 If created, Signals new token is created : Writes events to EventBridge \n
+GenerateTokenLambda -> ElastiCache: 7.2 If created, Updates tokens created for a specific EventId \n
+activate DynamoDB
+deactivate DynamoDB
+
+GenerateTokenLambda --> APIGateway: (Token) or null
+APIGateway --> APIClient: (Token) or null \n Allowed to buy ticket
+APIClient --> User: (Token) or null \n Allowed to buy ticket
+deactivate GenerateTokenLambda
+
+User -> APIClient: 9. Optionally, query remaining time \n before token expiry (EventID, RequestID)
+activate APIClient
+
+APIClient -> APIGateway: 10. queue_pos_expiry(EventID, RequestID)
+activate APIGateway
+
+APIGateway -> GetQueuePositionExpiryTimeLambda: 11. getQueuePositionExpiryTime(EventID, RequestID)
+activate GetQueuePositionExpiryTimeLambda
+
+GetQueuePositionExpiryTimeLambda --> APIGateway: (Remaining Time)
+deactivate GetQueuePositionExpiryTimeLambda
+
+APIGateway --> APIClient: (Remaining Time)
+deactivate APIGateway
+
+deactivate APIClient
+
+@enduml

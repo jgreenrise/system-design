@@ -1,0 +1,25 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+actor Proposer
+actor Acceptor
+actor Learner
+
+group Prepare Phase
+  Proposer -> Acceptor: send prepare request
+  Acceptor -> Proposer: promise not to accept lower proposals
+  Proposer -> Acceptor: gather promises from majority
+end group
+
+group Accept Phase
+  Proposer -> Acceptor: send accept request
+  Acceptor -> Proposer: accept proposal if no promise to reject
+end group
+
+group Learn Phase
+  Proposer -> Learner: send learned notification
+  Learner --> Proposer: acknowledge learned notification
+end group
+
+
+@enduml
